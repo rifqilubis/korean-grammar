@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Korean Grammar",
+  "version": "1.0.0",
+  "identifier": "com.rifqilubis.koreangrammar",
+  "build": {
+    "beforeDevCommand": "node tools/build-app.js",
+    "beforeBuildCommand": "node tools/build-app.js",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "한국어 문법",
+        "width": 430,
+        "height": 880,
+        "minWidth": 320,
+        "minHeight": 480,
+        "resizable": true,
+        "center": true,
+        "theme": "Dark"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Education",
+    "shortDescription": "Belajar tata bahasa Korea untuk pemula",
+    "longDescription": "Aplikasi belajar tata bahasa Korea dari nol: 10 topik materi, 82 soal pilihan ganda dengan pembahasan, dan latihan menulis.",
+    "android": {
+      "minSdkVersion": 24
+    }
+  }
+}

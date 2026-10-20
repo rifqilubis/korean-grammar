@@ -91,7 +91,19 @@
   }
 
   /* ------------------------------------------------------------------ TTS */
+  /* Dua jalur suara:
+     1. Aplikasi Android/desktop (Tauri) -> plugin TTS native lewat Rust.
+     2. Browser -> Web Speech API. */
+  var NATIVE = !!(window.__TAURI_INTERNALS__ || window.__TAURI__);
   var voice = null;
+
+  function invokeTts(cmd, args) {
+    var core = window.__TAURI_INTERNALS__;
+    if (core && typeof core.invoke === 'function') {
+      return core.invoke('plugin:tts|' + cmd, args);
+    }
+    return Promise.reject(new Error('tanpa Tauri'));
+  }
 
   function pickVoice() {
     if (!window.speechSynthesis) return;
@@ -101,7 +113,27 @@
     }
   }
 
+  function speakNative(text) {
+    return invokeTts('speak', {
+      payload: {
+        text: text,
+        language: 'ko-KR',
+        voiceId: null,
+        rate: 0.92,
+        pitch: 1.0,
+        volume: 1.0,
+        /* plugin hanya menerima "flush" (hentikan lalu ucapkan) atau "add". */
+        queueMode: 'flush'
+      }
+    });
+  }
+
   function speak(text) {
+    if (NATIVE) {
+      invokeTts('stop', {}).catch(function () { /* belum ada ucapan */ });
+      speakNative(text).catch(function () { /* mesin suara tidak siap */ });
+      return;
+    }
     if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
     try {
       window.speechSynthesis.cancel();
@@ -113,8 +145,13 @@
     } catch (e) { /* suara tidak tersedia */ }
   }
 
-  var ttsAvailable = !!window.speechSynthesis;
-  if (ttsAvailable) {
+  /* Di WebView Android, speechSynthesis sering ada tapi tanpa voice Korea.
+     Jadi di mode native tombol 🔊 ditampilkan selama plugin TTS ada. */
+  var ttsAvailable = NATIVE || !!window.speechSynthesis;
+
+  if (NATIVE) {
+    invokeTts('is_initialized', {}).catch(function () { /* plugin TTS tidak tersedia */ });
+  } else if (ttsAvailable) {
     pickVoice();
     if (typeof window.speechSynthesis.addEventListener === 'function') {
       window.speechSynthesis.addEventListener('voiceschanged', pickVoice);
@@ -663,10 +700,50 @@
     });
   }
 
+  /* ------------------------------------------------------- Android back btn */
+  /* Jembatan Android pada Tauri menyalakan listener "back-button" milik plugin
+     app (bukan event `tauri://`), jadi tombol Back HP ditangani di sini:
+     tutup kuis -> kembali ke daftar -> keluar aplikasi.
+     Di browser blok ini tidak berbuat apa pun. */
+  function bindBackButton() {
+    if (!NATIVE) return;
+
+    function exitApp() {
+      var app = window.__TAURI__ && window.__TAURI__.app;
+      if (app && typeof app.exit === 'function') {
+        app.exit(0);
+        return;
+      }
+      var core = window.__TAURI_INTERNALS__;
+      if (core && typeof core.invoke === 'function') {
+        core.invoke('plugin:app|exit', { code: 0 }).catch(function () { /* abaikan */ });
+      }
+    }
+
+    function onBack() {
+      if (!$('screen-quiz').hidden) { closeQuiz(); return; }
+      if (!$('screen-result').hidden) { goTo('#/'); return; }
+      if (!$('screen-lat').hidden) {
+        goTo(currentTopic ? '#/topik/' + currentTopic.id : '#/');
+        return;
+      }
+      if (location.hash && location.hash !== '#/' && location.hash !== '#') {
+        goTo('#/');
+        return;
+      }
+      exitApp();
+    }
+
+    var app = window.__TAURI__ && window.__TAURI__.app;
+    if (!app || typeof app.onBackButtonPress !== 'function') return;
+    app.onBackButtonPress(onBack).catch(function () { /* diabaikan */ });
+  }
+
   /* ------------------------------------------------------------------ BOOT */
   function boot() {
     initTheme();
     bind();
+    bindBackButton();
     route();
     registerSW();
     if (!TOPICS.length) {
@@ -676,9 +753,11 @@
 
   window.KG_APP = { store: function () { return store; }, route: route, startQuiz: startQuiz };
 
-  /* Service worker hanya aktif lewat http(s). Saat dibuka dari file://
-     aplikasi tetap berjalan penuh, hanya tanpa cache offline. */
+  /* Service worker hanya aktif lewat http(s) di browser.
+     Saat dibuka dari file:// atau dari dalam aplikasi Android (Tauri, aset
+     sudah lokal) aplikasi tetap berjalan penuh; pendaftaran dilewati saja. */
   function registerSW() {
+    if (window.__TAURI_INTERNALS__ || window.__TAURI__) return;
     if (!('serviceWorker' in navigator)) return;
     if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
     navigator.serviceWorker.register('sw.js').catch(function () { /* diabaikan */ });

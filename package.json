@@ -1,0 +1,25 @@
+{
+  "name": "korean-grammar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "한국어 문법 — aplikasi belajar tata bahasa Korea (PWA + Android/desktop lewat Tauri/Rust)",
+  "license": "MIT",
+  "scripts": {
+    "tauri": "tauri",
+    "web": "node tools/build-app.js && node tools/serve.js",
+    "dist": "node tools/build-app.js",
+    "check": "node tools/validate.js && node tools/smoke-test.js",
+    "data": "node tools/build-data.js",
+    "icons": "tauri icon icons/icon-512.png -o src-tauri/icons",
+    "android:init": "tauri android init",
+    "android:dev": "tauri android dev",
+    "android:build": "powershell -ExecutionPolicy Bypass -File tools/build-android.ps1",
+    "android:build:aab": "powershell -ExecutionPolicy Bypass -File tools/build-android.ps1 -Aab",
+    "android:open": "tauri android open",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

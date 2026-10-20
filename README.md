@@ -6,6 +6,9 @@ Isinya **10 topik materi**, **82 soal pilihan ganda** dengan pembahasan, dan **3
 Dibuat dengan HTML, CSS, dan JavaScript biasa — tanpa framework, tanpa dependensi, dan tanpa
 build step. Cukup buka `index.html`.
 
+Bisa juga dijalankan sebagai **aplikasi Android asli** (APK) lewat pembungkus **Rust + Tauri 2** —
+lihat [docs/ANDROID.md](docs/ANDROID.md).
+
 **Langsung pakai di browser:** **https://rifqilubis.github.io/korean-grammar/**
 
 ---
@@ -77,6 +80,30 @@ alamat, dan seluruh isinya tersimpan di perangkat.
 **Kalau mengubah berkas:** naikkan angka `CACHE` di `sw.js` (mis. `kg-dsh-v2` → `kg-dsh-v3`),
 supaya ponsel yang sudah memasang versi lama mengambil pembaruan, bukan salinan lama.
 
+## Versi Android (APK) — Rust + Tauri
+
+Selain PWA, folder ini bisa dibangun menjadi **APK Android asli**. Pembungkusnya ditulis dengan
+**Rust** memakai **Tauri 2**, yang membuat WebView native, memakai mesin suara (TTS) Korea bawaan
+HP, dan menangani tombol *Back*. Materi, kuis, dan progres tetap dari `js/` yang sama — tidak ada
+materi yang ditulis dua kali.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/setup-android.ps1   # sekali saja
+npm install
+npm run android:build                                               # hasilkan APK
+```
+
+Hasil: **`build/korean-grammar.apk`** (± 17 MB, sudah ditandatangani, siap dipasang).
+Pasang lewat USB dengan `adb install -r build/korean-grammar.apk`, atau salin berkasnya ke HP.
+
+Pada build pertama, keystore dibuat otomatis di `.keystore/` — simpan folder itu, karena
+tanpa kunci yang sama pembaruan aplikasi tidak bisa ditandatangani ulang.
+
+Untuk ngoprek tampilan dengan muat-ulang otomatis: `npm run android:dev`.
+
+Panduan lengkap (kebutuhan alat, tanda tangan rilis, pemecahan masalah):
+**[docs/ANDROID.md](docs/ANDROID.md)**.
+
 ## Struktur berkas
 
 ```
@@ -84,14 +111,27 @@ korean-grammar/
 ├─ index.html            # kerangka layar: daftar materi, materi, latihan, kuis, hasil
 ├─ manifest.json         # identitas PWA (nama, ikon, mode mandiri)
 ├─ sw.js                 # service worker: aplikasi tetap jalan tanpa internet
+├─ package.json          # skrip npm: android:build, android:dev, dist, check
 ├─ css/style.css         # tema gelap & terang, tata letak, animasi
 ├─ js/
 │  ├─ app.js             # router hash, render materi, mesin kuis, progres
 │  └─ data.js            # bank materi & soal (dihasilkan otomatis, ASCII-only)
 ├─ icons/                # ikon PWA: 192, 512, maskable, apple-touch, favicon
+├─ src-tauri/            # pembungkus Android/desktop (Rust + Tauri 2)
+│  ├─ Cargo.toml         # dependensi Rust
+│  ├─ tauri.conf.json    # nama aplikasi, ikon, jendela, minSdk
+│  ├─ capabilities/      # izin plugin (core + TTS)
+│  ├─ icons/             # ikon semua ukuran, termasuk Android mipmap
+│  └─ src/lib.rs         # entry point mobile + perintah Rust
+├─ docs/ANDROID.md       # panduan build APK
+├─ build/                # hasil akhir: korean-grammar.apk (tidak di-commit)
 └─ tools/
    ├─ data-final.js      # sumber materi yang diedit manusia
    ├─ build-data.js      # menghasilkan js/data.js dari data-final.js
+   ├─ build-app.js       # menyalin aset web ke dist/ untuk dikemas Tauri
+   ├─ build-android.ps1  # build + tanda tangan APK
+   ├─ serve.js           # server lokal untuk uji PWA / buka dari HP
+   ├─ setup-android.ps1  # pemasang Android SDK, NDK, dan target Rust
    ├─ validate.js        # pemeriksa data, partikel, aset, dan referensi DOM
    ├─ smoke-test.js      # uji seluruh alur aplikasi tanpa browser (DOM mini)
    └─ make-icons.py      # bikin ulang ikon dari font Korea (butuh Pillow)

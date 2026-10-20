@@ -6,7 +6,7 @@ desktop.ini
 .idea/
 *.swp
 
-# Node (tidak ada dependensi, tapi jaga-jaga)
+# Node (dependensi hanya untuk Tauri CLI)
 node_modules/
 npm-debug.log*
 package-lock.json
@@ -19,3 +19,29 @@ __pycache__/
 # Berkas sementara
 *.log
 *.tmp
+
+# ---- Tauri / Rust ----
+# dist/ dihasilkan ulang oleh tools/build-app.js
+dist/
+# hasil kompilasi Rust
+src-tauri/target/
+# skema & aset yang dibuat ulang tauri-cli (bukan sumber)
+src-tauri/gen/schemas/
+# proyek Android/iOS hasil `tauri android init` DISIMPAN (berisi konfigurasi
+# Gradle yang disesuaikan), tapi sisa build-nya tidak.
+src-tauri/gen/android/app/build/
+src-tauri/gen/android/build/
+src-tauri/gen/android/.gradle/
+src-tauri/gen/android/local.properties
+src-tauri/gen/android/app/tauri.properties
+src-tauri/gen/android/app/src/main/assets/
+src-tauri/gen/android/app/src/main/jniLibs/
+src-tauri/gen/android/.idea/
+src-tauri/gen/apple/
+.gradle/
+*.apk
+*.aab
+# keystore rilis — berisi kata sandi, jangan pernah di-commit
+.keystore/
+# hasil build siap pasang (build/korean-grammar.apk)
+build/
