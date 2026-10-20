@@ -1,0 +1,21 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Node (tidak ada dependensi, tapi jaga-jaga)
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Python (tools/make-icons.py)
+__pycache__/
+*.pyc
+.venv/
+
+# Berkas sementara
+*.log
+*.tmp

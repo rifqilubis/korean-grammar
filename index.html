@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0c0d16">
+<link rel="manifest" href="manifest.json">
+<title>한국어 문법 — Belajar Grammar Korea untuk Pemula</title>
+<meta name="description" content="Aplikasi belajar tata bahasa Korea untuk pemula: 10 topik materi dan kuis pilihan ganda dengan pembahasan.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="한국어 문법">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23e14b6a'/%3E%3Ctext x='32' y='45' font-size='32' font-family='sans-serif' text-anchor='middle' fill='white'%3E%ED%95%9C%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ============================ TOPBAR ============================ -->
+  <header class="topbar">
+    <a class="brand" href="#/" id="brandLink">
+      <span class="brand-ko">한국어</span>
+      <span class="brand-quiz">문법</span>
+    </a>
+    <div class="topbar-right">
+      <button class="icon-btn" id="themeBtn" type="button" title="Ganti tema terang / gelap" aria-label="Ganti tema">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"></circle>
+          <g stroke-linecap="round"><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.8 1.8M16.8 16.8l1.8 1.8M18.6 5.4l-1.8 1.8M7.2 16.8l-1.8 1.8"></path></g>
+        </svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.6A8.4 8.4 0 0 1 9.4 3.8a8.4 8.4 0 1 0 10.8 10.8z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ========================= HOME ========================= -->
+    <section class="screen" id="screen-home">
+      <div class="hero card">
+        <p class="hero-kicker">안녕하세요! Mulai dari sini</p>
+        <h1 class="hero-title">Grammar Korea untuk pemula</h1>
+        <p class="hero-sub">10 topik dari nol sampai bisa membuat kalimat sendiri. Baca materinya, lalu uji dengan kuis pilihan ganda.</p>
+
+        <div class="hero-stats">
+          <div class="mini-stat">
+            <span class="mini-val" id="statTopicsDone">0/10</span>
+            <span class="mini-label">topik tuntas</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-val" id="statQuizScore">–</span>
+            <span class="mini-label">rata-rata kuis</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-val" id="statStreak">0</span>
+            <span class="mini-label">soal dijawab</span>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="resumeBtn" type="button">Mulai dari topik 1</button>
+          <button class="btn btn-ghost" id="resetBtn" type="button" hidden>Hapus progres</button>
+        </div>
+      </div>
+
+      <h2 class="section-title">Daftar materi</h2>
+      <div class="topic-list" id="topicList"></div>
+
+      <p class="page-note">Progresmu disimpan otomatis di perangkat ini. Bisa dibuka tanpa internet setelah dipasang.</p>
+    </section>
+
+    <!-- ========================= LESSON ========================= -->
+    <section class="screen" id="screen-lesson" hidden>
+      <a class="back-link" href="#/" id="lessonBack">‹ Kembali ke daftar</a>
+
+      <div class="lesson-head">
+        <span class="topic-icon" id="lessonIcon">한</span>
+        <div>
+          <p class="topic-meta" id="lessonMeta">Topik 1 · Dasar</p>
+          <h1 class="lesson-title" id="lessonTitle">한글</h1>
+          <p class="lesson-subtitle" id="lessonTitleId">Hangeul</p>
+        </div>
+      </div>
+
+      <div class="lesson-intro" id="lessonIntro"></div>
+      <article class="lesson-body" id="lessonBody"></article>
+
+      <div class="lesson-actions">
+        <button class="btn btn-primary btn-block" id="lessonQuizBtn" type="button">Kerjakan kuis topik ini</button>
+        <button class="btn btn-ghost btn-block" id="lessonLatBtn" type="button">Latihan menulis</button>
+      </div>
+      <div class="lesson-nav">
+        <a class="btn btn-ghost" id="prevTopicBtn" href="#">‹ Sebelumnya</a>
+        <a class="btn btn-ghost" id="nextTopicBtn" href="#">Berikutnya ›</a>
+      </div>
+    </section>
+
+    <!-- ========================= FONT PRACTICE ========================= -->
+    <section class="screen" id="screen-lat" hidden>
+      <a class="back-link" id="latBack" href="#">‹ Kembali ke materi</a>
+      <div class="card lat-card">
+        <p class="topic-meta">Latihan menulis</p>
+        <h1 class="lesson-title">Tulis dalam bahasa Korea</h1>
+        <p class="hero-sub">Ketikan atau tempel kalimatnya. Cocokkan tanpa melihat romanisasi.</p>
+
+        <div class="lat-list" id="latList"></div>
+
+        <div class="lat-status" id="latStatus" role="status" aria-live="polite"></div>
+        <div class="actions">
+          <button class="btn btn-ghost" id="latRevealBtn" type="button">Tampilkan jawaban</button>
+          <button class="btn btn-ghost" id="latResetBtn" type="button">Kosongkan</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================ QUIZ ============================ -->
+  <section class="screen screen-quiz" id="screen-quiz" hidden>
+    <div class="quiz-frame">
+      <div class="quiz-top">
+        <button class="icon-btn" id="quizCloseBtn" type="button" title="Keluar dari kuis" aria-label="Keluar">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+        <div class="quiz-topic" id="quizTopic">Topik 1 · 한글</div>
+        <div class="score-pill" id="scorePill">Benar 0</div>
+      </div>
+
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <div class="card quiz-card">
+        <p class="quiz-count" id="quizCount">Soal 1 dari 8</p>
+        <p class="quiz-q" id="quizQuestion">Pertanyaan</p>
+        <div class="options" id="options"></div>
+        <div class="explain" id="explain" hidden></div>
+        <div class="quiz-footer">
+          <span class="feedback" id="feedback" role="status" aria-live="polite"></span>
+          <button class="btn btn-primary" id="nextBtn" type="button" hidden>Lanjut</button>
+        </div>
+      </div>
+      <p class="hint-keys">Pintasan: 1–4 memilih jawaban · Enter melanjutkan</p>
+    </div>
+  </section>
+
+  <!-- ============================ RESULT ============================ -->
+  <section class="screen screen-result" id="screen-result" hidden>
+    <div class="result-frame">
+      <div class="card result-card">
+        <div class="ring">
+          <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+            <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="ring-text">
+            <span class="ring-percent" id="resultPercent">0%</span>
+            <small class="ring-fraction" id="resultFraction">0 / 0</small>
+          </div>
+        </div>
+        <h2 class="result-headline" id="resultHeadline">Selesai!</h2>
+        <p class="result-msg" id="resultMsg"></p>
+
+        <div class="stats">
+          <div class="stat"><span class="stat-val stat-val--ok" id="statCorrect">0</span><span class="stat-label">Benar</span></div>
+          <div class="stat"><span class="stat-val stat-val--bad" id="statWrong">0</span><span class="stat-label">Salah</span></div>
+          <div class="stat"><span class="stat-val" id="statTime">0:00</span><span class="stat-label">Waktu</span></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="retryBtn" type="button">Ulangi kuis</button>
+          <button class="btn btn-ghost" id="backLessonBtn" type="button">Baca materi lagi</button>
+          <button class="btn btn-ghost" id="nextQuizTopicBtn" type="button">Topik berikutnya</button>
+        </div>
+      </div>
+
+      <div class="card review-card" id="reviewCard" hidden>
+        <h3 class="review-title">Pembahasan jawaban yang belum tepat</h3>
+        <ul class="review-list" id="reviewList"></ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

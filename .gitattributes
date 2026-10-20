@@ -1,0 +1,10 @@
+# Normalisasi akhir baris supaya berkas tidak "berubah semua" saat dibuka
+# di Windows vs Linux/macOS.
+* text=auto eol=lf
+
+# Berkas biner: jangan disentuh.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
