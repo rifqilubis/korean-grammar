@@ -6,6 +6,8 @@ Isinya **10 topik materi**, **82 soal pilihan ganda** dengan pembahasan, dan **3
 Dibuat dengan HTML, CSS, dan JavaScript biasa — tanpa framework, tanpa dependensi, dan tanpa
 build step. Cukup buka `index.html`.
 
+**Langsung pakai di browser:** **https://rifqilubis.github.io/korean-grammar/**
+
 ---
 
 ## Cara menjalankan
@@ -57,6 +59,10 @@ terjemahan, serta **catatan** berisi kiat praktis.
 | Mode offline | Setelah dipasang, seluruh materi dan soal tersimpan di perangkat |
 
 ## Pakai di ponsel (dan saat offline)
+
+Aplikasi sudah dipasang di GitHub Pages, jadi bisa dibuka dari ponsel di mana saja:
+
+**https://rifqilubis.github.io/korean-grammar/**
 
 Supaya tampil seperti aplikasi biasa dan tetap bisa dibuka tanpa internet:
 
