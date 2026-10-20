@@ -11,6 +11,9 @@ lihat [docs/ANDROID.md](docs/ANDROID.md).
 
 **Langsung pakai di browser:** **https://rifqilubis.github.io/korean-grammar/**
 
+**Unduh APK Android:** **[Releases › APK terbaru](https://github.com/rifqilubis/korean-grammar/releases/latest)**
+— pasang di HP Android 7.0 ke atas, tanpa perlu internet setelah terpasang.
+
 ---
 
 ## Cara menjalankan
@@ -86,6 +89,10 @@ Selain PWA, folder ini bisa dibangun menjadi **APK Android asli**. Pembungkusnya
 **Rust** memakai **Tauri 2**, yang membuat WebView native, memakai mesin suara (TTS) Korea bawaan
 HP, dan menangani tombol *Back*. Materi, kuis, dan progres tetap dari `js/` yang sama — tidak ada
 materi yang ditulis dua kali.
+
+**Tidak perlu membangun sendiri** kalau hanya ingin memakainya: unduh APK yang sudah jadi di
+**[Releases](https://github.com/rifqilubis/korean-grammar/releases/latest)**, lalu buka berkasnya
+di HP (aktifkan *Install unknown apps* untuk File Manager). Butuh Android 7.0 ke atas.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/setup-android.ps1   # sekali saja
