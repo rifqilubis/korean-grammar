@@ -151,6 +151,10 @@ if (-not $NotesFile) {
         ""
         "Versi web (tanpa pasang apa pun): https://rifqilubis.github.io/korean-grammar/"
     ) | Set-Content $NotesFile -Encoding utf8
+    # Set-Content -Encoding utf8 di PowerShell 5.1 selalu menulis BOM, dan BOM
+    # itu ikut tampil sebagai karakter aneh di awal catatan rilis GitHub.
+    $plain = New-Object Text.UTF8Encoding($false)
+    [IO.File]::WriteAllText($NotesFile, [IO.File]::ReadAllText($NotesFile, [Text.Encoding]::UTF8), $plain)
     Ok "catatan rilis dibuat otomatis"
 } else {
     Ok "catatan rilis dari $NotesFile"
