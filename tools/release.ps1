@@ -23,6 +23,22 @@ function Step($m) { Write-Host "`n==> $m" -ForegroundColor Cyan }
 function Ok($m)   { Write-Host "    ok  $m" -ForegroundColor Green }
 function Die($m)  { Write-Host "`nGAGAL: $m" -ForegroundColor Red; exit 1 }
 
+# PowerShell 5.1 menganggap apa pun yang ditulis program native ke stderr
+# sebagai error yang menghentikan skrip. git dan gh rutin menulis progres ke
+# stderr, jadi semua pemanggilan lewat sini: keluaran dialihkan ke berkas,
+# lalu kita periksa kode keluarnya sendiri.
+function Invoke-Native($exe, $argLine) {
+    $out = Join-Path $env:TEMP "kg-native.out"
+    $err = Join-Path $env:TEMP "kg-native.err"
+    $p = Start-Process -FilePath $exe -ArgumentList $argLine -NoNewWindow -Wait -PassThru `
+        -RedirectStandardOutput $out -RedirectStandardError $err
+    $text = @()
+    if (Test-Path $out) { $text += Get-Content $out }
+    if (Test-Path $err) { $text += Get-Content $err }
+    Remove-Item $out, $err -Force -ErrorAction SilentlyContinue
+    return [pscustomobject]@{ Code = $p.ExitCode; Text = $text }
+}
+
 Set-Location $Root
 
 # --------------------------------------------------------- 1. versi & tag
@@ -50,18 +66,17 @@ Step "Memeriksa prasyarat"
 $gh = Get-Command gh -ErrorAction SilentlyContinue
 if (-not $gh) { Die "gh CLI tidak ada. Pasang dari https://cli.github.com lalu jalankan gh auth login." }
 
-$probe = Start-Process -FilePath "gh" -ArgumentList "auth status" -NoNewWindow -Wait -PassThru `
-    -RedirectStandardOutput "$env:TEMP\gh-auth.log" -RedirectStandardError "$env:TEMP\gh-auth.err"
-if ($probe.ExitCode -ne 0) { Die "gh belum login. Jalankan: gh auth login" }
+$probe = Invoke-Native "gh" "auth status"
+if ($probe.Code -ne 0) { Die "gh belum login. Jalankan: gh auth login" }
 Ok "gh CLI siap"
 
 # Riwayat git harus bersih: rilis harus bisa ditelusuri ke satu commit.
-$dirty = git status --porcelain 2>&1
+$dirty = (Invoke-Native "git" "status --porcelain").Text
 if ($dirty) {
-    Write-Host $dirty
-    Die "Masih ada perubahan yang belum di-commit. Commit dulu agar rilis bisa dilacak (atau pakai -SkipBuild setelah commit)."
+    $dirty | ForEach-Object { Write-Host "    $_" }
+    Die "Masih ada perubahan yang belum di-commit. Commit dulu agar rilis bisa dilacak."
 }
-$commit = (git rev-parse --short HEAD).Trim()
+$commit = ((Invoke-Native "git" "rev-parse --short HEAD").Text | Select-Object -First 1).Trim()
 Ok "commit: $commit"
 
 # --------------------------------------------------------------- 3. build
@@ -89,14 +104,15 @@ Copy-Item $apk $assetPath -Force
 # ------------------------------------------------------------ 4. tag git
 Step "Menyiapkan tag $tag"
 
-$existing = git tag -l $tag
+$existing = ((Invoke-Native "git" "tag -l $tag").Text) | Where-Object { $_ -eq $tag }
 if ($existing) {
     Ok "tag $tag sudah ada"
 } else {
-    git tag -a $tag -m "Korean Grammar $Version" 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { Die "Gagal membuat tag $tag." }
-    git push origin $tag 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { Die "Gagal push tag $tag." }
+    $r = Invoke-Native "git" "tag -a $tag -m `"Korean Grammar $Version`""
+    if ($r.Code -ne 0) { $r.Text | ForEach-Object { Write-Host "    $_" }; Die "Gagal membuat tag $tag." }
+
+    $r = Invoke-Native "git" "push origin $tag"
+    if ($r.Code -ne 0) { $r.Text | ForEach-Object { Write-Host "    $_" }; Die "Gagal push tag $tag." }
     Ok "tag dibuat & di-push"
 }
 
@@ -143,25 +159,32 @@ if (-not $NotesFile) {
 # ------------------------------------------------------------- 6. unggah
 Step "Mengunggah ke GitHub Releases"
 
-$releaseArgs = @(
-    "release", "create", $tag, $assetPath,
-    "--title", "Korean Grammar $Version",
-    "--notes-file", $NotesFile,
-    "--latest"
-)
-if ($Draft) { $releaseArgs += "--draft" }
+# Kalau release untuk tag ini sudah ada (mis. percobaan sebelumnya), unggah
+# ulang APK-nya saja alih-alih gagal.
+$view = Invoke-Native "gh" "release view `"$tag`" --json url"
+if ($view.Code -eq 0) {
+    Ok "release $tag sudah ada, memperbarui berkas"
+    $r = Invoke-Native "gh" "release upload `"$tag`" `"$assetPath`" --clobber"
+    if ($r.Code -ne 0) { $r.Text | ForEach-Object { Write-Host "    $_" }; Die "gh release upload gagal." }
+    $url = (($view.Text -join ' ') -replace '.*"url":"([^"]+)".*', '$1')
+} else {
+    $releaseLine = @(
+        "release create `"$tag`" `"$assetPath`""
+        "--title `"Korean Grammar $Version`""
+        "--notes-file `"$NotesFile`""
+        "--latest"
+    ) -join ' '
+    if ($Draft) { $releaseLine += " --draft" }
 
-$log = Join-Path $env:TEMP "gh-release.log"
-$rel = Start-Process -FilePath "gh" -ArgumentList $releaseArgs -NoNewWindow -Wait -PassThru `
-    -RedirectStandardOutput $log -RedirectStandardError "$env:TEMP\gh-release.err"
-$url = ""
-if (Test-Path $log) { $url = (Get-Content $log | Select-Object -Last 1).Trim() }
-
-if ($rel.ExitCode -ne 0) {
-    Get-Content "$env:TEMP\gh-release.err" -ErrorAction SilentlyContinue | Select-Object -Last 10 |
-        ForEach-Object { Write-Host "    $_" }
-    Die "gh release create gagal (exit $($rel.ExitCode))."
+    $rel = Invoke-Native "gh" $releaseLine
+    if ($rel.Code -ne 0) {
+        $rel.Text | Select-Object -Last 10 | ForEach-Object { Write-Host "    $_" }
+        Die "gh release create gagal (exit $($rel.Code))."
+    }
+    # Baris keluaran `gh` yang berupa URL adalah alamat rilis.
+    $url = ($rel.Text | Where-Object { $_ -match '^https?://' } | Select-Object -Last 1)
 }
+if (-not $url) { $url = "https://github.com/rifqilubis/korean-grammar/releases/latest" }
 
 # ------------------------------------------------------------- 7. ringkasan
 Write-Host @"
