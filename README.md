@@ -6,8 +6,14 @@ Isinya **10 topik materi**, **82 soal pilihan ganda** dengan pembahasan, dan **3
 Dibuat dengan HTML, CSS, dan JavaScript biasa — tanpa framework, tanpa dependensi, dan tanpa
 build step. Cukup buka `index.html`.
 
-Bisa juga dijalankan sebagai **aplikasi Android asli** (APK) lewat pembungkus **Rust + Tauri 2** —
-lihat [docs/ANDROID.md](docs/ANDROID.md).
+Bisa juga dijalankan sebagai **aplikasi Android asli** (APK). Ada dua pembungkus, keduanya ditulis
+dengan Rust dan memakai materi yang sama:
+
+- **Rust murni** (`android-rs/`) — antarmuka digambar langsung oleh `egui`, tanpa WebView, tanpa
+  HTML/CSS/JS, dan tanpa Java/Kotlin di dalam APK. Ukuran APK ~2,7 MB. Lihat
+  [docs/ANDROID-RUST.md](docs/ANDROID-RUST.md).
+- **Tauri 2** (`src-tauri/`) — memakai WebView native dan mesin suara (TTS) Korea bawaan HP.
+  Lihat [docs/ANDROID.md](docs/ANDROID.md).
 
 **Langsung pakai di browser:** **https://rifqilubis.github.io/korean-grammar/**
 
@@ -83,12 +89,32 @@ alamat, dan seluruh isinya tersimpan di perangkat.
 **Kalau mengubah berkas:** naikkan angka `CACHE` di `sw.js` (mis. `kg-dsh-v2` → `kg-dsh-v3`),
 supaya ponsel yang sudah memasang versi lama mengambil pembaruan, bukan salinan lama.
 
-## Versi Android (APK) — Rust + Tauri
+## Versi Android (APK) — Rust
 
-Selain PWA, folder ini bisa dibangun menjadi **APK Android asli**. Pembungkusnya ditulis dengan
-**Rust** memakai **Tauri 2**, yang membuat WebView native, memakai mesin suara (TTS) Korea bawaan
-HP, dan menangani tombol *Back*. Materi, kuis, dan progres tetap dari `js/` yang sama — tidak ada
-materi yang ditulis dua kali.
+Ada dua cara membangun APK. Keduanya ditulis dengan Rust dan memakai materi yang sama dari `js/`.
+
+### Rust murni — tanpa WebView
+
+Ini versi yang direkomendasikan bila yang dicari adalah aplikasi yang benar-benar asli: seluruh
+antarmuka digambar langsung ke OpenGL oleh `egui`, tidak ada HTML/CSS/JS, tidak ada WebView, dan
+tidak ada Java/Kotlin di dalam APK (`android:hasCode="0"`). APK-nya juga jauh lebih kecil.
+
+```powershell
+cargo install cargo-apk --version 0.10.0        # sekali saja
+powershell -ExecutionPolicy Bypass -File tools/build-rust-apk.ps1
+```
+
+Hasil: **`android-rs/target/release/apk/korean-grammar-rust.apk`** (± 2,7 MB untuk satu ABI).
+Butuh Android SDK, NDK, dan JDK 17 — panduan lengkap alat, tanda tangan, pratinjau desktop, dan
+pengujian: **[docs/ANDROID-RUST.md](docs/ANDROID-RUST.md)**.
+
+Belum ada teks ke suara (TTS) di versi ini; pembungkus Tauri di bawah masih punya.
+
+### Tauri 2 — WebView native + TTS
+
+Pembungkus ini memakai WebView native, memakai mesin suara (TTS) Korea bawaan HP, dan menangani
+tombol *Back*. Materi, kuis, dan progres tetap dari `js/` yang sama — tidak ada materi yang
+ditulis dua kali.
 
 **Tidak perlu membangun sendiri** kalau hanya ingin memakainya: unduh APK yang sudah jadi di
 **[Releases](https://github.com/rifqilubis/korean-grammar/releases/latest)**, lalu buka berkasnya
@@ -130,13 +156,26 @@ korean-grammar/
 │  ├─ capabilities/      # izin plugin (core + TTS)
 │  ├─ icons/             # ikon semua ukuran, termasuk Android mipmap
 │  └─ src/lib.rs         # entry point mobile + perintah Rust
-├─ docs/ANDROID.md       # panduan build APK
+├─ android-rs/           # APK Rust murni, tanpa WebView (egui + cargo-apk)
+│  ├─ Cargo.toml         # dependensi, metadata Android (paket, ikon, minSdk)
+│  ├─ res/mipmap-*/      # ikon peluncur per densitas
+│  ├─ fonts/             # Nanum Gothic (OFL) - ditanam ke dalam biner
+│  ├─ examples/desktop.rs# pratinjau desktop tanpa HP
+│  ├─ src/ui.rs          # seluruh antarmuka: 5 layar
+│  ├─ src/data.json      # materi hasil generate dari js/data.js
+│  └─ tests/app.rs       # uji tanpa jendela
+├─ docs/
+│  ├─ ANDROID.md         # panduan build APK versi Tauri
+│  └─ ANDROID-RUST.md    # panduan build APK versi Rust murni
 ├─ build/                # hasil akhir: korean-grammar.apk (tidak di-commit)
 └─ tools/
    ├─ data-final.js      # sumber materi yang diedit manusia
    ├─ build-data.js      # menghasilkan js/data.js dari data-final.js
+   ├─ gen-rust-data.js   # menghasilkan android-rs/src/data.json
    ├─ build-app.js       # menyalin aset web ke dist/ untuk dikemas Tauri
-   ├─ build-android.ps1  # build + tanda tangan APK
+   ├─ build-android.ps1  # build + tanda tangan APK (Tauri)
+   ├─ build-rust-apk.ps1 # build + tanda tangan APK (Rust murni)
+   ├─ make-rust-icons.ps1# bikin ulang ikon mipmap dari icons/icon-512.png
    ├─ serve.js           # server lokal untuk uji PWA / buka dari HP
    ├─ setup-android.ps1  # pemasang Android SDK, NDK, dan target Rust
    ├─ validate.js        # pemeriksa data, partikel, aset, dan referensi DOM
@@ -175,6 +214,16 @@ Struktur satu topik:
 `build-data.js` juga **menggilir posisi jawaban benar** secara deterministik, supaya pilihan A–D
 terpakai merata dan kuis tidak bisa dijawab hanya dengan menebak posisi. Di `data-final.js` kamu
 tetap menulis jawaban di indeks `0`; build yang memindahkannya.
+
+Versi Android Rust murni memakai data yang sama, jadi setelah mengubah materi bangun juga berkas
+datanya:
+
+```powershell
+node tools/gen-rust-data.js    # js/data.js -> android-rs/src/data.json
+```
+
+Skrip itu memeriksa dulu bahwa jumlah topik, soal, dan latihan masih sesuai, baru menulis
+`data.json`. Kalau ada yang tidak cocok, build dihentikan supaya materi tidak diam-diam rusak.
 
 Setelah mengubah, jalankan kedua pemeriksa (butuh Node.js):
 

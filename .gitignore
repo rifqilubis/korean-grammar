@@ -45,3 +45,11 @@ src-tauri/gen/apple/
 .keystore/
 # hasil build siap pasang (build/korean-grammar.apk)
 build/
+
+# ---- APK Rust murni (android-rs/) ----
+# hasil kompilasi Rust
+android-rs/target/
+# linker NDK ditulis ulang tools/build-rust-apk.ps1 sesuai path mesin
+android-rs/.cargo/config.toml
+# tangkapan layar QA dari tools/shots.js
+shot-*.png
