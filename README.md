@@ -20,6 +20,16 @@ dengan Rust dan memakai materi yang sama:
 **Unduh APK Android:** **[Releases › APK terbaru](https://github.com/rifqilubis/korean-grammar/releases/latest)**
 — pasang di HP Android 7.0 ke atas, tanpa perlu internet setelah terpasang.
 
+Dua APK tersedia, pilih salah satu:
+
+| Rilis | Isi | Ukuran | TTS |
+| --- | --- | --- | --- |
+| **[v2.0.0](https://github.com/rifqilubis/korean-grammar/releases/tag/v2.0.0)** | Rust murni, tanpa WebView | 12,2 MB | belum ada |
+| **[v1.0.0](https://github.com/rifqilubis/korean-grammar/releases/tag/v1.0.0)** | Tauri, WebView + TTS | 17,4 MB | ada |
+
+Keduanya memakai paket dan kunci tanda tangan yang sama, jadi yang satu bisa dipasang menimpa
+yang lain tanpa kehilangan progres.
+
 ---
 
 ## Cara menjalankan
@@ -104,11 +114,17 @@ cargo install cargo-apk --version 0.10.0        # sekali saja
 powershell -ExecutionPolicy Bypass -File tools/build-rust-apk.ps1
 ```
 
-Hasil: **`android-rs/target/release/apk/korean-grammar-rust.apk`** (± 2,7 MB untuk satu ABI).
-Butuh Android SDK, NDK, dan JDK 17 — panduan lengkap alat, tanda tangan, pratinjau desktop, dan
-pengujian: **[docs/ANDROID-RUST.md](docs/ANDROID-RUST.md)**.
+Hasil: **`android-rs/target/release/apk/korean-grammar-rust.apk`** (± 12,2 MB untuk empat ABI,
+± 2,7 MB bila hanya `arm64-v8a`). Butuh Android SDK, NDK, dan JDK 17 — panduan lengkap alat,
+tanda tangan, pratinjau desktop, dan pengujian: **[docs/ANDROID-RUST.md](docs/ANDROID-RUST.md)**.
 
 Belum ada teks ke suara (TTS) di versi ini; pembungkus Tauri di bawah masih punya.
+
+Untuk merilis ke GitHub Releases:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/release.ps1 -Rust
+```
 
 ### Tauri 2 — WebView native + TTS
 
